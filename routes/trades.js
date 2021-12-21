@@ -39,6 +39,70 @@ router.get("/getAllOffers", async (req, res) => {
     } catch (ex) {
       return res.status(500).send(`Internal Server Error: ${ex}`);
     }
-  });
+});
+
+//* Delete an offer
+router.delete("/deleteOffer/:userId/:offerId", async (req, res) => {
+  try {
+    const badOffer = await Offers.findById(req.params.offerId);
+    if (!badOffer)
+      return res
+      .status(400)
+      .send(`Offer with id ${req.params.offerId} does not exist`);
+    const user = await User.findById(req.params.userId);
+    await user.outgoingOffers.remove(badOffer);
+    await user.incomingOffers.remove(badOffer);
+    await badOffer.remove();
+    await user.save();
+    return res.send(badOffer);
+    } catch (ex) {
+      return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
+//* Post Send a trade request
+router.post("/sendTradeRequest/:userId", async (req, res) => {
+  try {
+    const tradee = await User.findOne({ userName: req.body.userName });
+    const trader = await User.findById(req.params.userId);
+
+    const giveOffer = new Offers({
+      owner: req.params.userId,
+      offer: req.body.offer,
+    });
+
+    await tradee.incomingOffers.push(giveOffer);
+    await trader.outgoingOffers.push(giveOffer);
+    await tradee.save();
+    await trader.save();
+    return res
+    .send({
+      _id: giveOffer._id,
+      owner: giveOffer.owner,
+      offer: giveOffer.offer,
+    });
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`);
+  }
+});
+
+//* Delete Complete a trade request
+router.delete("/completeTrade/:userId/:offerId", async (req, res) => {
+  try {
+    const tradeRecipientA = await User.findById(req.params.userId);
+    const tradeRecipientB = await User.findOne({userName: req.body.userName});
+    const offer = await Offers.findById(req.params.offerId);
+
+    await tradeRecipientA.incomingOffers.remove({_id: req.params.offerId});
+    await tradeRecipientA.outgoingOffers.remove({_id: req.params.offerId});
+    await tradeRecipientB.incomingOffers.remove({_id: req.params.offerId});
+    await tradeRecipientB.outgoingOffers.remove({_id: req.params.offerId});
+    await tradeRecipientA.save();
+    await tradeRecipientB.save();
+    return res.send(offer);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`);
+  }
+});
 
 module.exports = router;

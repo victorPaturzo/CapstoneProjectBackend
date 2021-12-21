@@ -1,6 +1,7 @@
 const connectDb = require("./db/db");
 const usersRouter = require("./routes/users");
 const modelsRouter = require("./routes/models")
+const tradesRouter = require("./routes/trades");
 const express = require("express");
 const cors = require("cors");
 const app = express();
