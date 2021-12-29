@@ -1,4 +1,4 @@
-const { User, validateLogin, validateUser, validateOffer, Offers, } = require("../models/user");
+const { User, validateLogin, validateUser} = require("../models/user");
 
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
@@ -106,23 +106,18 @@ router.get("/:userId", async (req, res) => {
 });
 
 //*Put Update/edit user profile
-router.put("/editProfile/:userId", [auth], async (req, res) => {
+router.put("/editProfile/:userId", async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(
-      req.params.userId,
-      {
-        name: req.body.name,
-        userName: req.body.userName,
-        email: req.body.email,
-        mailingAddress: req.body.mailAddress,
-        password: req.body.password,
-        contactInfo: req.body.contactInfo,
-      },
-    );
-
-    if(!user)
-      return res.status(400).send(`The user does not exist.`)
-
+    const salt = await bcrypt.genSalt(10);
+    
+    const user = await User.findById(req.params.userId);
+    user.name = req.body.name,
+    user.userName = req.body.userName,
+    user.email = req.body.email,
+    user.mailingAddress = req.body.mailingAddress,
+    user.password =  await bcrypt.hash(req.body.password, salt),
+    user.contactInfo = req.body.contactInfo;
+    
     await user.save();
 
     return res.send(user);

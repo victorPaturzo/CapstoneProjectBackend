@@ -14,7 +14,7 @@ const userSchema = mongoose.Schema({
     minLength: 2,
     maxLength: 255,
   },
-  mailIngAddress: {type: String, minLength: 5, maxLength: 150, default: "requires a mailing address"},
+  mailingAddress: {type: String, minLength: 5, maxLength: 150, default: "requires a mailing address"},
   contactInfo: {type: Number},
   password: { type: String, required: true, minLength: 8, maxLength: 1024 },
   isAdmin: { type: Boolean, required: true },
