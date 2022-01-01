@@ -1,8 +1,9 @@
-const {Model, StatBlock, WeaponProfile, WeaponAbilities, ModelAbilities, Factions, Keywords} = require("../models/modeldata");
+const {Model, StatBlock, WeaponProfile, WeaponAbilities, ModelAbilities, Factions, Keywords, weaponAbilities} = require("../models/modeldata");
 
 const express = require("express");
 const { exist } = require("joi");
 const { models } = require("mongoose");
+const res = require("express/lib/response");
 const router = express.Router();
 
 router.post("/addNewModel", async (req, res) => {
@@ -126,6 +127,27 @@ router.delete("/deleteWeaponAbility/:weaponAbilityId", async (req, res) => {
     }
 });
 
+//* Push Weapon ability into weapon
+router.put("/pushWeaponAbility/:weaponAbilityId/:weaponName", async (req, res) => {
+    try {
+        const weapon = await WeaponProfile.findOne({weaponName: req.params.weaponName});
+        if (!weapon)
+        return res
+        .status(400)
+        .send(`Weapon with name ${req.params.weaponName} does not exist.`);
+        const weaponAbility = await WeaponAbilities.findById(req.params.weaponAbilityId);
+        if (!weaponAbility)
+        return res
+        .status(400)
+        .send(`Weapon Ability with id ${req.params.weaponAbilityId} does not exist.`);
+        await weapon.abilities.push(weaponAbility);
+        await weapon.save();
+        return res.send(weapon);
+    } catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
 //* Post a weaponProfile
 router.post("/addWeaponProfile", async (req, res) => {
     try{
@@ -182,6 +204,28 @@ router.delete("/deleteWeaponProfile/:weaponProfileId", async (req, res) => {
     }
 });
 
+//*Push weapon into model
+router.put("/pushWeapon/:weaponName/:modelId", async (req, res) => {
+    try {
+        const model = await Model.findById(req.params.modelId);
+        if (!model)
+        return res
+        .status(400)
+        .send(`Model with Id ${req.params.modelId} does not exist`);
+        const weapon = await WeaponProfile.findOne( {weaponName: req.params.weaponName} );
+        if (!weapon) 
+        return res
+        .status(400)
+        .send(`Weapon with name ${req.params.weaponName} does not exist`);
+        await model.weapons.push(weapon);
+        await model.save();
+        return res.send(model);
+    } catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
+
 //* Post a statBlock
 router.post("/addStatBlock", async (req, res) => {
     try{
@@ -237,6 +281,27 @@ router.delete("/deleteStatBlock/:statBlockId", async (req, res) => {
         .send(`StatBlock with id ${req.params.userId} does not exist.`);
         await statBlock.remove();
         return res.send(statBlock);
+    } catch (ex) {
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
+//*Push a stat block
+router.put("/pushStatBlock/:statBlockId/:modelId", async (req, res) => {
+    try {
+        const model = await Model.findById(req.params.modelId);
+        if (!model)
+        return res
+        .status(400)
+        .send(`Model with id ${req.params.modelId} does not exist`);
+        const statBlock = await StatBlock.findById(req.params.statBlockId);
+        if (!statBlock)
+        return res
+        .status (400)
+        .send(`StatBlock with id ${req.params.statBlockId} does not exist`);
+        await model.stats.push(statBlock);
+        await model.save();
+        return res.send(model);
     } catch (ex) {
         return res.status(500).send(`Internal Server Error: ${ex}`);
     }
