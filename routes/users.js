@@ -1,4 +1,4 @@
-const { User, validateLogin, validateUser} = require("../models/user");
+const { User, Post, Reply, Message, validateLogin, validateUser, validatePost, validateMessage} = require("../models/user");
 
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
@@ -126,4 +126,114 @@ router.put("/editProfile/:userId", async (req, res) => {
   }
 });
 
+//* Post Create a Post
+router.post("/createPost/:userId", async (req, res) => {
+  try {
+    const { error } = validatePost(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    let user = await User.findById(req.params.userId);
+    if (!user) return res.status(400).send(`Could not find user with id ${req.params.userId}.`)
+
+    const newPost = new Post({
+      text: req.body.text
+    });
+
+    await newPost.save();
+    await user.posts.push(newPost);
+    await user.save();
+    return res.send(user);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`)
+  }
+});
+
+//*Adding likes and dislikes
+router.put("/:userId/posts/:postId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    let thePost = user.posts.id(req.params.postId);
+
+    thePost = {...thePost, ...req.body};
+
+    await user.save();
+    await thePost.save();
+
+    return res.send(thePost);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`)
+  }
+});
+
+//*Replying to posts
+router.post("/:userId/posts/:postId/replies", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+
+    let thePost = user.posts.id(req.params.postId);
+
+    const reply = new Reply({
+      text: req.body.text,
+      likes: req.body.likes,
+      dislikes: req.body.dislikes
+    });
+
+    await thePost.replies.push(reply);
+    await user.save();
+    return res.send(thePost.replies);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`);
+  }
+});
+
+//*Post send a message
+router.post("/sendMessage/:recipientUserName/:userName", async (req, res) => {
+  try {
+    const { error } = validateMessage(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    const recipient = await User.findOne({ userName: req.params.recipientUserName });
+    if (!recipient) return res.status(400).send(`Could not find user with UserName ${req.params.recipientUserName}.`)
+
+    const newMessage = new Message({
+      userName: req.params.userName,
+      text: req.body.text,
+    });
+
+    await recipient.inbox.push(newMessage);
+    await recipient.save();
+    return res.send({
+      _id: newMessage._id,
+      userName: newMessage.userName,
+      text: newMessage.text,
+    });
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`)
+  }
+});
+
+//*Sending a friend request to friend's pendingFriends Array
+router.get("/:userId/pendingFriends/:friendId",[auth], async (req, res) => {
+  
+  const user = await User.findById(req.params.friendId);
+  user.pendingFriends.push(req.params.userId);
+
+  await user.save()
+  return res.send(user.pendingFriends)   
+})
+
+//Accepting a friend request and moving from pending array to accepted array
+router.get("/:yourId/acceptFriends/:userId",[auth], async(req, res)=>{
+ const user = await User.findById(req.params.yourId);
+ const indexOfFriend = user.pendingFriends.findIndex(e=>e===req.params.userId)
+user.pendingFriends.splice (indexOfFriend,1);
+
+user.acceptedFriends.push(req.params.userId);
+const friend = await User.findById(req.params.userId);
+friend.acceptedFriends.push(req.params.yourId);
+
+await user.save();
+await friend.save();
+return res.send([user,friend])
+})
 module.exports = router;

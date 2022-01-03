@@ -84,6 +84,10 @@ router.delete("/:modelId", async (req, res) => {
     }
 });
 
+//*Push model image into model
+
+// router.put("pushModelImg/:modelId/:imgUrl", async)
+
 //* Post register a weapon ability
 router.post("/addNewWeaponAbility", async (req, res) => {
     try {

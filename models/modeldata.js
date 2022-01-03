@@ -52,6 +52,7 @@ const modelSchema = mongoose.Schema({
   abilities: {type: [modelAbilities], default: []},
   factionKeywords: {type: [factions], default: []},
   modelKeywords: {type: [keywords], default: []},
+  image: Buffer,
 });
 
 const Model = mongoose.model("Model", modelSchema);

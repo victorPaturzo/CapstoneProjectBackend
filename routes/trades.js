@@ -5,15 +5,15 @@ const express = require("express");
 const router = express.Router();
 
 //* Post an offer
-router.post("/postOffer/:userId", async (req, res) => {
+router.post("/postOffer/:userName", async (req, res) => {
   try {
     const { error } = validateOffer(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
-    let user = await User.findById(req.params.userId);
+    let user = await User.findOne({ userName: req.params.userName });
 
     const newOffer = new Offers({
-      owner: req.params.userId,
+      owner: req.params.userName,
       offer: req.body.offer,
     });
 
