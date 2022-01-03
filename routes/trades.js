@@ -1,4 +1,4 @@
-const {validateOffer, Offers,} = require("../models/trade");
+const {validateOffer, Offers, Events, validateEvent} = require("../models/trade");
 const {User,} = require("../models/user");
 
 const express = require("express");
@@ -100,6 +100,51 @@ router.delete("/completeTrade/:userId/:offerId", async (req, res) => {
     await tradeRecipientA.save();
     await tradeRecipientB.save();
     return res.send(offer);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`);
+  }
+});
+
+//* Post and event
+router.post("/postEvent", async (req, res) => {
+  try {
+    const { error } = validateEvent(req.body);
+    if (error)
+    return res.status(400).send(error);
+
+    const newEvent = new Events({
+      date: req.date,
+      event: req.body.event,
+    });
+
+    await newEvent.save();
+
+    return res.send(newEvent);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`)
+  }
+});
+
+//* Get All events
+router.get("/getEvents", async (req, res) => {
+  try {
+    const allEvents = await Events.find();
+    return res.send(allEvents);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`)
+  }
+});
+
+//*Delete an event
+router.delete("/:eventId", async (req, res) => {
+  try {
+    const badEvent = await Events.findById(req.params.eventId);
+    if (!badEvent)
+    return res
+    .status(400)
+    .send(`Event with Id ${req.params.eventId} does not exist.`);
+    await badEvent.remove();
+    return res.send(badEvent);
   } catch (ex) {
     return res.status(500).send(`Internal Server Error: ${ex}`);
   }

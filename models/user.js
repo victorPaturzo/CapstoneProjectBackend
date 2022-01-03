@@ -35,7 +35,7 @@ const userSchema = mongoose.Schema({
   mailingAddress: {type: String, minLength: 5, maxLength: 150, default: "requires a mailing address"},
   contactInfo: {type: Number},
   password: { type: String, required: true, minLength: 8, maxLength: 1024 },
-  isAdmin: { type: Boolean, required: true },
+  isAdmin: { type: Boolean, default: false },
   outgoingOffers: {type: [offersSchema]},
   incomingOffers: {type: [offersSchema]},
   posts: {type: [postSchema], default: []},
@@ -64,8 +64,7 @@ const validateUser = (user) => {
     name: Joi.string().min(5).max(50).required(),
     userName: Joi.string().min(5).max(50).required(),
     email: Joi.string().min(5).max(255).required().email(),
-    password: Joi.string().min(5).max(1024).required(),
-    isAdmin: Joi.bool().required(),
+    password: Joi.string().min(5).max(1024).required()
   });
   return schema.validate(user);
 };

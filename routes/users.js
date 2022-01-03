@@ -23,7 +23,7 @@ router.post("/register", async (req, res) => {
       userName: req.body.userName,
       email: req.body.email,
       password: await bcrypt.hash(req.body.password, salt),
-      isAdmin: req.body.isAdmin,
+      isAdmin: req.body.isAdmin
     });
 
     await user.save();
@@ -249,6 +249,6 @@ router.get("/getFriends/:userId", async (req, res) => {
   }
 });
 
-// messages.map(message => <li key={message._id}>{message.text}</li>)
+
 
 module.exports = router;
