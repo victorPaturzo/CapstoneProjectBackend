@@ -222,8 +222,8 @@ router.get("/:userId/pendingFriends/:friendId",[auth], async (req, res) => {
   return res.send(user.pendingFriends)   
 })
 
-//Accepting a friend request and moving from pending array to accepted array
-router.get("/:yourId/acceptFriends/:userId",[auth], async(req, res)=>{
+//* Accepting a friend request and moving from pending array to accepted array
+router.get("/:yourId/acceptFriends/:userId",[auth], async (req, res)=>{
  const user = await User.findById(req.params.yourId);
  const indexOfFriend = user.pendingFriends.findIndex(e=>e===req.params.userId)
 user.pendingFriends.splice (indexOfFriend,1);
@@ -236,4 +236,19 @@ await user.save();
 await friend.save();
 return res.send([user,friend])
 })
+
+//* Get all of User's Friends
+router.get("/getFriends/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    const friendsList = user.acceptedFriends;
+    const friendUserNames = await User.findById(friendsList)
+    return res.send(friendUserNames.userName);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`)
+  }
+});
+
+// messages.map(message => <li key={message._id}>{message.text}</li>)
+
 module.exports = router;
