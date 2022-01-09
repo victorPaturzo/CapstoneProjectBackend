@@ -3,6 +3,15 @@ const Joi = require("joi");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const { offersSchema } = require("./trade");
+const { modelSchema } = require("./modeldata");
+
+const armyCompSchema = mongoose.Schema({
+  armyComp: {type: [modelSchema], default: []}
+})
+
+const armySchema = mongoose.Schema({
+  army: {type: String, required: true}
+})
 
 const messageSchema = mongoose.Schema({
   userName: {type: String, required: true},
@@ -41,7 +50,10 @@ const userSchema = mongoose.Schema({
   posts: {type: [postSchema], default: []},
   inbox: {type: [messageSchema], default: []},
   acceptedFriends: {type: [mongoose.Schema.Types.ObjectId], default: []},
-  pendingFriends: {type: [mongoose.Schema.Types.ObjectId], default: []}
+  pendingFriends: {type: [mongoose.Schema.Types.ObjectId], default: []},
+  status: {type: Boolean, default: false},
+  armies: {type: [armySchema], default: []},
+  armyComps: {type: [armyCompSchema], default: []},
 });
 
 
@@ -91,10 +103,19 @@ const validateMessage = (req) => {
   return schema.validate(req);
 };
 
+const validateArmy = (req) => {
+  const schema = Joi.object({
+    army: Joi.string().min(8).max(50).required(),
+  });
+  return schema.validate(req);
+}
+
 const User = mongoose.model("User", userSchema);
 const Post = mongoose.model("Post", postSchema);
 const Reply = mongoose.model("Reply", replySchema);
 const Message = mongoose.model("Message", messageSchema);
+const Army = mongoose.model("Army", armySchema);
+const ArmyComp = mongoose.model("ArmyComp", armyCompSchema);
 module.exports.User = User;
 module.exports.userSchema = userSchema;
 module.exports.Post = Post;
@@ -103,8 +124,13 @@ module.exports.Reply = Reply;
 module.exports.replySchema = replySchema;
 module.exports.Message = Message;
 module.exports.messageSchema = messageSchema;
+module.exports.Army = Army;
+module.exports.armySchema = armySchema;
+module.exports.ArmyComp = ArmyComp;
+module.exports.armyCompSchema = armyCompSchema;
 module.exports.validateUser = validateUser;
 module.exports.validateLogin = validateLogin;
 module.exports.validatePost = validatePost;
 module.exports.validateMessage = validateMessage;
+module.exports.validateArmy = validateArmy;
 

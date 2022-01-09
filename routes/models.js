@@ -51,7 +51,7 @@ router.get("/getAllModels", async (req, res) => {
 //*Get a model by name
 router.get("/getModelByName/:modelName", async (req, res) => {
     try {
-        let aModel = await Model.find({ modelName: req.params.modelName });
+        let aModel = await Model.findOne({ modelName: req.params.modelName });
         return res.send(aModel);
     } catch (ex) {
         return res.status(500).send(`Internal Server Error: ${ex}`)

@@ -1,4 +1,4 @@
-const { User, Post, Reply, Message, validateLogin, validateUser, validatePost, validateMessage} = require("../models/user");
+const { User, Post, Reply, Message, Army, validateLogin, validateUser, validatePost, validateMessage, validateArmy} = require("../models/user");
 
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
@@ -241,14 +241,75 @@ return res.send([user,friend])
 router.get("/getFriends/:userId", async (req, res) => {
   try {
     const user = await User.findById(req.params.userId);
-    const friendsList = user.acceptedFriends;
-    const friendUserNames = await User.findById(friendsList)
-    return res.send(friendUserNames.userName);
+    // const friends = await User.findById(friendsList);
+    return res.send(user.acceptedFriends)
+  } catch (ex) {
+    console.log(ex.message)
+    return res.status(500).send(`Internal Server Error: ${ex.message}`)
+  }
+});
+
+//*Delete friend
+router.delete("/deleteFriend/:yourId/:userId", [auth], async (req, res) => {
+  const user = await User.findById(req.params.yourId);
+  const badFriend = user.acceptedFriends.findIndex(e=>e===req.params.userId);
+  user.acceptedFriends.splice (badFriend, 1);
+
+  // const friend = await User.findById(req.params.userId);
+  // const yourOwnId = friend.acceptedFriends.findIndex(e=>e===req.params.yourId);
+  // friend.acceptedFriends.splice (yourOwnId, 1);
+
+  await user.save();
+  // await friend.save();
+  return res.send(user)
+})
+
+//*Post add an army
+router.post("/addArmy/:userId", async (req, res) => {
+  try {
+    const { error } = validateArmy(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    const user = await User.findById(req.params.userId);
+    const newArmy = new Army({
+      army: req.body.army,
+    });
+
+    await user.armies.push(newArmy);
+    await user.save();
+    return res.send({
+      army: newArmy.army,
+    });
   } catch (ex) {
     return res.status(500).send(`Internal Server Error: ${ex}`)
   }
 });
 
+//*Get user's armies
+router.get("/getArmies/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    return res.send(user.armies);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`);
+  }
+});
 
+//* DELETE an army from user's armies
+router.delete("/deleteArmy/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    let armies = user.armies;
+    let badArmy = armies.findIndex(i => i.army === req.body.army);
+    await armies.splice(badArmy, 1);
+    await user.save();
+    return res.send(armies);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`);
+  }
+});
+
+//*Post create an army comp for user
+// router.post("/createArmy/userId")
 
 module.exports = router;
