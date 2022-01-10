@@ -58,17 +58,6 @@ router.get("/getModelByName/:modelName", async (req, res) => {
     }
 });
 
-// router.get("/getModelByName", async (req, res) => {
-//     console.log(req.params);
-//     try {
-//         let models = await Model.find({ 'modelName_lower': req.query.modelName.toLowerCase() });
- 
-//         return res.send(models);
-//     } catch (ex) {
-//         return res.status(500).send(`Internal Server Error: ${ex}`)
-//     }
-// });
-
 //*Delete a model
 router.delete("/:modelId", async (req, res) => {
     try {
@@ -83,10 +72,6 @@ router.delete("/:modelId", async (req, res) => {
         return res.status(500).send(`Internal Server Error: ${ex}`);
     }
 });
-
-//*Push model image into model
-
-// router.put("pushModelImg/:modelId/:imgUrl", async)
 
 //* Post register a weapon ability
 router.post("/addNewWeaponAbility", async (req, res) => {
