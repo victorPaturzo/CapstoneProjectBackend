@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { commentSchema } = require("./user")
 
 const statBlock = mongoose.Schema({
     name: {type: String},
@@ -52,7 +53,7 @@ const modelSchema = mongoose.Schema({
   abilities: {type: [modelAbilities], default: []},
   factionKeywords: {type: [factions], default: []},
   modelKeywords: {type: [keywords], default: []},
-  comments: {type: [String], default: []},
+  comments: {type: [commentSchema], default: []},
   image: Buffer,
 });
 

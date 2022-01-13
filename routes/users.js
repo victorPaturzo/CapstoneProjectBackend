@@ -1,10 +1,12 @@
-const { User, Post, Reply, Message, Army, validateLogin, validateUser, validatePost, validateMessage, validateArmy} = require("../models/user");
+const { User, Post, Reply, Message, Army, Comment, validateLogin, validateUser, validatePost, validateMessage, validateArmy, validateComment} = require("../models/user");
+const {Model} = require("../models/modeldata");
 
 const auth = require("../middleware/auth");
 const admin = require("../middleware/admin");
 
 const bcrypt = require("bcrypt");
 const express = require("express");
+const { model } = require("mongoose");
 const router = express.Router();
 
 //* POST register a new user
@@ -237,6 +239,18 @@ await friend.save();
 return res.send([user,friend])
 })
 
+//* Get all of User's Pending Friends
+router.get("/getPendingFriends/:userId", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId);
+    // const friends = await User.findById(friendsList);
+    return res.send(user.pendingFriends)
+  } catch (ex) {
+    console.log(ex.message)
+    return res.status(500).send(`Internal Server Error: ${ex.message}`)
+  }
+});
+
 //* Get all of User's Friends
 router.get("/getFriends/:userId", async (req, res) => {
   try {
@@ -311,5 +325,22 @@ router.delete("/deleteArmy/:userId", async (req, res) => {
 
 //*Post create an army comp for user
 // router.post("/createArmy/userId")
+
+//*Post a comment for a model
+router.post("/modelComment/:userName/:modelName", async (req, res) => {
+  try {
+    const model = await Model.findOne({ modelName: req.params.modelName });
+    const comment = new Comment({
+      userName: req.params.userName,
+      text: req.body.text
+    });
+
+    await model.comments.push(comment);
+    await model.save();
+    return res.send(model);
+  } catch (ex) {
+    return res.status(500).send(`Internal Server Error: ${ex}`)
+  }
+});
 
 module.exports = router;
